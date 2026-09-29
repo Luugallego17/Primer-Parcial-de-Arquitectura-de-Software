@@ -1,20 +1,20 @@
 # Simulador de CPU — Arquitectura von Neumann / x86 de 8 bits
-
+ 
 Simulador interactivo y visual del **ciclo completo de instrucción** (Fetch → Decode →
 Execute → Store) y de la **gestión de memoria** de un procesador de 8 bits, desarrollado
 en **Microsoft Excel + VBA** (Visual Basic for Applications).
-
+ 
 El simulador modela el núcleo de procesamiento (ALU, registros y Unidad de Control) y una
 memoria principal (RAM) de 256 bytes, con ejecución **paso a paso** y **continua**,
 resaltado visual del flujo en tiempo real y un log cronológico de micro-operaciones.
-
+ 
 > **Materia:** Arquitectura de Computadoras (SIS-131) — Ingeniería de Software — UCB Santa Cruz
 > **Evaluación:** Primer Parcial — Proyecto práctico y defensa oral.
-
+ 
 ---
-
+ 
 ## Índice
-
+ 
 1. [Características](#características)
 2. [Arquitectura del sistema](#arquitectura-del-sistema)
 3. [Mapa de memoria](#mapa-de-memoria)
@@ -25,11 +25,10 @@ resaltado visual del flujo en tiempo real y un log cronológico de micro-operaci
 8. [Instalación y puesta en marcha](#instalación-y-puesta-en-marcha)
 9. [Manual de usuario](#manual-de-usuario)
 10. [Programa demostrativo y traza](#programa-demostrativo-y-traza)
-
 ---
-
+ 
 ## Características
-
+ 
 - **Memoria RAM de 256 bytes** direccionable de `00h` a `FFh`, presentada como matriz
   16×16 con segmentación visual entre **código** (azul) y **datos** (gris).
 - **Registros visibles**: `PC`, `IR`, `MAR`, `MDR`, `AX` (Acumulador) y `BX`.
@@ -44,14 +43,13 @@ resaltado visual del flujo en tiempo real y un log cronológico de micro-operaci
 - **Log cronológico** de micro-operaciones numeradas.
 - **Ensamblador de dos pasadas** con soporte de etiquetas, comentarios e inmediatos en
   decimal y hexadecimal (`0x20`, `20h`).
-
 ---
-
+ 
 ## Arquitectura del sistema
-
+ 
 Arquitectura de **von Neumann**: memoria única compartida para instrucciones y datos,
 conectada a la CPU a través de los registros de interfaz `MAR` / `MDR`.
-
+ 
 ```mermaid
 flowchart LR
     subgraph CPU["CPU (8 bits)"]
@@ -68,9 +66,9 @@ flowchart LR
         MAR["MAR"]
         MDR["MDR"]
     end
-
+ 
     MEM["MEMORIA PRINCIPAL<br/>RAM 256 bytes (00h–FFh)<br/>Código + Datos"]
-
+ 
     PC -->|dirección| MAR
     MAR -->|bus de direcciones| MEM
     MEM -->|bus de datos| MDR
@@ -82,27 +80,27 @@ flowchart LR
     AX -->|resultado| MDR
     MDR -->|write-back| MEM
 ```
-
+ 
 ---
-
+ 
 ## Mapa de memoria
-
+ 
 La RAM se organiza como una cuadrícula de 16×16 celdas de 1 byte. La dirección de cada
 celda se forma con el **nibble alto** (fila) y el **nibble bajo** (columna).
-
+ 
 | Segmento | Rango típico | Uso |
 |---|---|---|
 | **Código** | `00h` … (fin del programa) | Instrucciones cargadas por `LOAD PROGRAM` |
 | **Datos**  | resto hasta `FFh`          | Variables y resultados (p. ej. `RAM[20h]`) |
-
+ 
 El simulador colorea automáticamente el segmento de código en **azul** y el de datos en
 **gris**, resaltando en **amarillo** la celda direccionada por `MAR` y en **verde** la
 instrucción apuntada por `PC`.
-
+ 
 ---
-
+ 
 ## Registros y banderas
-
+ 
 | Registro | Ancho | Función |
 |---|---|---|
 | `PC`  | 8 bits | *Program Counter*: dirección de la siguiente instrucción. |
@@ -111,20 +109,20 @@ instrucción apuntada por `PC`.
 | `MDR` | 8 bits | *Memory Data Register*: dato transferido con la RAM. |
 | `AX`  | 8 bits | Acumulador de propósito general (cómputo aritmético). |
 | `BX`  | 8 bits | Registro de propósito general. |
-
+ 
 | Bandera | Se activa (=1) cuando… |
 |---|---|
 | `ZF` (Zero)  | el resultado de la última operación de la ALU fue `00h`. |
 | `CF` (Carry) | hubo acarreo (suma) o préstamo (resta) sin signo. |
 | `SF` (Sign)  | el bit más significativo (MSB) del resultado es 1 (negativo en Ca2). |
-
+ 
 ---
-
+ 
 ## Conjunto de instrucciones (ISA)
-
+ 
 Codificación de registros: `AX = 00h`, `BX = 01h`. Los inmediatos y direcciones ocupan
 1 byte. La tabla es la fuente formal de opcodes del procesador.
-
+ 
 | Opcode | Mnemónico | Bytes | Sintaxis | Descripción | Banderas |
 |:---:|:---|:---:|:---|:---|:---:|
 | `00h` | NOP   | 1 | `NOP`              | No realiza operación. | — |
@@ -148,14 +146,14 @@ Codificación de registros: `AX = 00h`, `BX = 01h`. Los inmediatos y direcciones
 | `51h` | JZ    | 2 | `JZ dir`           | Salta a `dir` si `ZF = 1`. | — |
 | `52h` | JNZ   | 2 | `JNZ dir`          | Salta a `dir` si `ZF = 0`. | — |
 | `FFh` | HLT   | 1 | `HLT`              | Detiene el reloj de la CPU. | — |
-
+ 
 ---
-
+ 
 ## Ciclo de instrucción
-
+ 
 Cada instrucción se descompone en cuatro fases del ciclo de reloj. En modo Paso a Paso
 cada clic de **STEP** avanza exactamente una fase.
-
+ 
 ```mermaid
 flowchart LR
     F["FETCH<br/>PC → MAR<br/>RAM[MAR] → MDR → IR<br/>PC ← PC + 1"]
@@ -164,14 +162,14 @@ flowchart LR
     S["STORE<br/>Write-back a<br/>registro o memoria"]
     F --> D --> E --> S --> F
 ```
-
+ 
 ---
-
+ 
 ## Estructura del proyecto
-
+ 
 El código está organizado en módulos desacoplados (diseño modular y escalable de cara al
 Segundo Parcial: Buses e I/O).
-
+ 
 ```
 src/
 ├── modEstado.bas        Constantes de arquitectura y control del motor de ejecución
@@ -188,13 +186,13 @@ src/
 docs/
 └── KANBAN.md            Desglose de tareas del tablero Kanban
 ```
-
+ 
 ---
-
+ 
 ## Instalación y puesta en marcha
-
+ 
 > Requiere Microsoft Excel con macros habilitadas (formato `.xlsm`).
-
+ 
 1. Abrir un libro nuevo de Excel y guardarlo como **Libro habilitado para macros (`.xlsm`)**.
 2. Abrir el editor de VBA con **`Alt + F11`**.
 3. En **Archivo → Importar archivo…**, importar los **11 módulos** de la carpeta `src/`
@@ -205,13 +203,12 @@ docs/
    Se genera automáticamente la hoja *Simulador* con la cuadrícula de memoria, el panel de
    registros y los botones de control.
 6. Guardar el libro. ¡Listo para la demostración!
-
 ---
-
+ 
 ## Manual de usuario
-
+ 
 Una vez construida la hoja *Simulador*, la operación se realiza con cinco botones:
-
+ 
 | Botón | Acción |
 |---|---|
 | **LOAD PROGRAM** | Ensambla y carga el programa demostrativo en la memoria (desde `00h`). |
@@ -219,9 +216,9 @@ Una vez construida la hoja *Simulador*, la operación se realiza con cinco boton
 | **RUN** | Ejecuta de forma continua hasta `HLT`, con el retardo (ms) indicado en la hoja. |
 | **PAUSE** | Detiene la ejecución continua sin perder el estado. |
 | **RESET** | Restaura registros, banderas y `PC` a `00h`, conservando el programa cargado. |
-
+ 
 **Flujo recomendado para la demostración:**
-
+ 
 1. Pulsar **LOAD PROGRAM**.
 2. Pulsar **STEP** repetidamente y observar cómo:
    - en *Fetch* el `MAR` toma el valor del `PC` y la celda activa se resalta en amarillo;
@@ -231,17 +228,16 @@ Una vez construida la hoja *Simulador*, la operación se realiza con cinco boton
 3. Alternativamente, pulsar **RUN** para ver la animación completa y **PAUSE** para
    congelar el flujo.
 4. El **log** de la derecha registra cada micro-operación numerada.
-
 Para modificar en vivo un dato de memoria (típico en la ronda de preguntas), basta con
 escribir un nuevo valor hexadecimal en cualquier celda del segmento de datos.
-
+ 
 ---
-
+ 
 ## Programa demostrativo y traza
-
+ 
 El programa obligatorio calcula **3 × 4 = 12** mediante **sumas sucesivas** (bucle con
 bifurcación condicional) y guarda el resultado en el segmento de datos `RAM[20h]`.
-
+ 
 ```asm
 ; ============================================================
 ; Multiplicación por sumas sucesivas: 3 x 4 = 12 (0Ch)
@@ -257,18 +253,18 @@ LOOP:   CMP BX, 0        ; contador == 0 ?
 FIN:    STORE [0x20], AX ; guardar resultado en RAM[20h]
         HLT              ; detener el reloj
 ```
-
+ 
 **Código máquina generado (22 bytes, desde `00h`):**
-
+ 
 ```
 10 00 00 10 01 04 36 01 00 51 12 30 00 03 35 01 50 06 21 20 00 FF
 ```
-
+ 
 Etiquetas resueltas por el ensamblador: `LOOP = 06h`, `FIN = 12h`.
-
+ 
 **Traza de ejecución (por instrucción).** El bucle se repite 4 veces; en cada vuelta `AX`
 crece en 3 y `BX` decrece en 1 hasta que `CMP BX, 0` activa `ZF` y `JZ` salta al final:
-
+ 
 | #  | PC  | Instrucción      | AX | BX | ZF | CF | SF |
 |---:|----:|------------------|---:|---:|:--:|:--:|:--:|
 | 1  | 00h | MOV AX, 00h      |  0 |  0 | 0 | 0 | 0 |
@@ -283,10 +279,12 @@ crece en 3 y `BX` decrece en 1 hasta que `CMP BX, 0` activa `ZF` y `JZ` salta al
 | …  | …   | *(3.ª vuelta)*   |  9 |  1 | 0 | 0 | 0 |
 | 20 | 0Bh | ADD AX, 03h      | 12 |  1 | 0 | 0 | 0 |
 | 21 | 0Eh | DEC BX           | 12 |  0 | **1** | 0 | 0 |
+| 22 | 10h | JMP 06h          | 12 |  0 | 1 | 0 | 0 |
 | 23 | 06h | CMP BX, 00h      | 12 |  0 | **1** | 0 | 0 |
 | 24 | 09h | JZ 12h → salta   | 12 |  0 | **1** | 0 | 0 |
 | 25 | 12h | STORE [20h], AX  | 12 |  0 | 1 | 0 | 0 |
 | 26 | 15h | HLT              | 12 |  0 | 1 | 0 | 0 |
-
+ 
 **Resultado final:** `AX = 0Ch (12)`, `RAM[20h] = 0Ch (12)`, `ZF = 1`. La CPU se detiene
 al ejecutar `HLT`.
+ 
