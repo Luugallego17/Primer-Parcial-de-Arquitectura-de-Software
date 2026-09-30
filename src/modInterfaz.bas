@@ -35,11 +35,11 @@ Private Const CEL_VEL As String = "C19"
 Public Function Hoja() As Worksheet
     Dim ws As Worksheet
     On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets(HOJA)
+    Set ws = ThisWorkbook.Worksheets(NOMBRE_HOJA)
     On Error GoTo 0
     If ws Is Nothing Then
         Set ws = ThisWorkbook.Worksheets.Add
-        ws.Name = HOJA
+        ws.Name = NOMBRE_HOJA
     End If
     Set Hoja = ws
 End Function
@@ -53,7 +53,9 @@ Public Sub ConstruirSimulador()
 
     Application.ScreenUpdating = False
     ws.Cells.Clear
+    On Error Resume Next
     ws.Buttons.Delete
+    On Error GoTo 0
 
     ' ---- Titulo ----
     With ws.Range("B2")

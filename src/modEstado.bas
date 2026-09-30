@@ -17,7 +17,7 @@ Option Explicit
 ' ---- Parametros de la arquitectura -------------------------------------------------
 Public Const MEM_TAM As Integer = 256          ' 256 posiciones: 00h (0d) .. FFh (255d)
 Public Const ANCHO_PALABRA As Integer = 8      ' 8 bits (1 byte) por celda
-Public Const HOJA As String = "Simulador"      ' nombre de la hoja de trabajo
+Public Const NOMBRE_HOJA As String = "Simulador"      ' nombre de la hoja de trabajo
 
 ' Identificadores internos de los registros de proposito general
 Public Const REG_AX As Byte = 0
